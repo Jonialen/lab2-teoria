@@ -1,5 +1,8 @@
 # shunting_yard.py (shunting_yard.py)
 
+from expression_balancer import ExpressionBalancer
+
+
 class ShuntingYard:
     """
     Implementa el algoritmo de Shunting Yard para convertir expresiones regulares
@@ -168,6 +171,7 @@ class ShuntingYard:
     def process_file(self, filename):
         """Process expressions from file"""
         results = []
+        balancer = ExpressionBalancer()
         try:
             with open(filename, 'r', encoding='utf-8') as file:
                 lines = file.readlines()
@@ -183,6 +187,21 @@ class ShuntingYard:
                 print(f"\nExpression {line_num}: {expression}")
                 print("-" * 50)
                 
+                # Check if the expression is balanced
+                is_balanced, balance_steps = balancer.is_balanced(expression)
+                
+                # Print balancing steps for clarity
+                for step in balance_steps:
+                    print(f"  [Balance Check] {step}")
+
+                if not is_balanced:
+                    print("\n  Result: Expression is not balanced. Skipping conversion.")
+                    print("=" * 70)
+                    results.append(f"{expression} -> UNBALANCED, SKIPPED")
+                    continue
+
+                # If balanced, proceed with Shunting Yard
+                print("\n  Expression is balanced. Proceeding with Shunting Yard...")
                 postfix, steps = self.infix_to_postfix(expression)
                 
                 for step in steps:
@@ -209,7 +228,7 @@ def create_regex_test_file():
         "((ε|a)|b*)*",
         "(a|b)*abb(a|b)*",
         "0?(1?)?0*",
-        "if\\([ae]+\\)\\{[ei]+\\}(\\n(else\\{[jl]+\\}))?",
+        "if\\([ae]+\\)\\{[ei]+\\\}\\(\\n(else\\{[jl]+\\\}))?",
         "[ae03]+@[ae03]+.(com|net|org)(.(gt|cr|co))?"
     ]
     
