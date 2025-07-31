@@ -2,258 +2,252 @@
 
 from expression_balancer import ExpressionBalancer
 
-
 class ShuntingYard:
     """
     Implementa el algoritmo de Shunting Yard para convertir expresiones regulares
-    de notación infix a postfix
+    de notación infix a postfix.
     """
-    
+
     def __init__(self):
-        # Operator precedence (higher number = higher precedence)
+        # Precedencia de operadores (mayor número = mayor precedencia)
         self.precedence = {
-            '|': 1,  # alternation (union)
-            '.': 2,  # concatenation (implicit)
-            '?': 3,  # zero or one
-            '*': 3,  # zero or more
-            '+': 3,  # one or more
+            '|': 1,  # alternancia (unión)
+            '.': 2,  # concatenación (implícita)
+            '?': 3,  # cero o uno
+            '*': 3,  # cero o más
+            '+': 3,  # uno o más
         }
-        
         self.right_associative = {'?', '*', '+'}
         self.operators = set(self.precedence.keys())
-    
+
     def preprocess_regex(self, regex):
         """
-        Preprocess regex to handle escape characters and convert + and ? operators
+        Preprocesa la regex para convertir + y ? a su forma equivalente,
+        y maneja caracteres escapados.
         """
         processed = []
         i = 0
-        
         while i < len(regex):
             char = regex[i]
-            
-            # Handle escape characters
+            # Manejo de caracteres escapados
             if char == '\\' and i + 1 < len(regex):
-                processed.append(regex[i + 1])  # Add escaped character
+                processed.append('\\' + regex[i + 1])
                 i += 2
                 continue
-            
-            # Convert + to equivalent form: a+ = aa*
+
+            # Convertir + a equivalente: a+ = aa*
             if char == '+' and processed:
-                last_char = processed[-1]
-                if last_char not in self.operators and last_char not in '()[]{}':
-                    processed.append(last_char)  # Duplicate last character
-                    processed.append('*')  # Add Kleene star
+                operand, operand_length = self._extract_operand_with_length(processed)
+                if operand:
+                    # Remover el operando original
+                    for _ in range(operand_length):
+                        processed.pop()
+                    # Agregar operando.operando*
+                    processed.extend(list(operand))
+                    processed.extend(list(operand))
+                    processed.append('*')
                     i += 1
                     continue
-            
-            # Convert ? to equivalent form: a? = (ε|a)
+
+            # Convertir ? a equivalente: a? = (ε|a)
             if char == '?' and processed:
-                last_char = processed.pop()  # Remove last character
-                processed.extend(['(', 'ε', '|', last_char, ')'])
-                i += 1
-                continue
-            
+                operand, operand_length = self._extract_operand_with_length(processed)
+                if operand:
+                    # Remover el operando original
+                    for _ in range(operand_length):
+                        processed.pop()
+                    # Agregar (ε|operando)
+                    processed.extend(['(', 'ε', '|'])
+                    processed.extend(list(operand))
+                    processed.append(')')
+                    i += 1
+                    continue
+
             processed.append(char)
             i += 1
-        
         return ''.join(processed)
-    
-    def add_explicit_concatenation(self, regex):
-        """Add explicit concatenation operators"""
-        result = []
+
+    def _extract_operand_with_length(self, processed):
+        """
+        Extrae el operando completo antes de un operador (+, ?) y devuelve
+        tanto el operando como su longitud en la lista processed.
+        """
+        if not processed:
+            return None, 0
         
+        # Si el último carácter es un paréntesis de cierre, buscar el correspondiente de apertura
+        if processed[-1] in ')]}':
+            operand, start_pos = self._extract_balanced_with_position(processed)
+            if operand and start_pos is not None:
+                return operand, len(processed) - start_pos
+            else:
+                return processed[-1], 1
+        
+        # Si es un carácter escapado
+        if len(processed) >= 2 and processed[-2] == '\\':
+            return ''.join(processed[-2:]), 2
+        
+        # Si es un solo carácter
+        return processed[-1], 1
+
+    def _extract_balanced_with_position(self, processed):
+        """
+        Extrae una subexpresión balanceada desde el final de la lista
+        y devuelve también la posición de inicio.
+        """
+        if not processed or processed[-1] not in ')]}':
+            return None, None
+            
+        pairs = {')': '(', ']': '[', '}': '{'}
+        closing = processed[-1]
+        opening = pairs[closing]
+        level = 1
+        i = len(processed) - 2
+        
+        while i >= 0:
+            if processed[i] == closing:
+                level += 1
+            elif processed[i] == opening:
+                level -= 1
+                if level == 0:
+                    # Devuelve la subexpresión balanceada y la posición de inicio
+                    return ''.join(processed[i:]), i
+            i -= 1
+        
+        # Si no está balanceado, advertir y devolver solo el último carácter
+        print("Advertencia: expresión no balanceada al extraer operando.")
+        return processed[-1], len(processed) - 1
+
+    def _extract_operand(self, processed):
+        """
+        Versión simplificada para compatibilidad (usa la nueva implementación).
+        """
+        operand, _ = self._extract_operand_with_length(processed)
+        return operand
+
+    def _extract_balanced(self, processed):
+        """
+        Versión simplificada para compatibilidad (usa la nueva implementación).
+        """
+        operand, _ = self._extract_balanced_with_position(processed)
+        return operand
+
+    def add_explicit_concatenation(self, regex):
+        """
+        Inserta el operador de concatenación '.' explícitamente donde sea necesario.
+        """
+        result = []
         for i in range(len(regex)):
             result.append(regex[i])
-            
             if i < len(regex) - 1:
-                current = regex[i]
-                next_char = regex[i + 1]
-                
-                # Add concatenation between:
-                # - character and character
-                # - character and (
-                # - ) and character
-                # - ) and (
-                # - character and [
-                # - ] and character
-                
-                needs_concat = (
-                    (current not in self.operators and current not in '()[]{}' and 
-                     next_char not in self.operators and next_char not in '()[]{}') or
-                    (current not in self.operators and current not in '()[]{}' and next_char == '(') or
-                    (current == ')' and next_char not in self.operators and next_char not in '()[]{}') or
-                    (current == ')' and next_char == '(') or
-                    (current not in self.operators and current not in '()[]{}' and next_char == '[') or
-                    (current == ']' and next_char not in self.operators and next_char not in '()[]{}') or
-                    (current == ']' and next_char == '(') or
-                    (current == '*' and next_char not in self.operators and next_char not in '()[]{}|') or
-                    (current == '*' and next_char == '(')
-                )
-                
-                if needs_concat:
+                curr, nxt = regex[i], regex[i + 1]
+                # Condiciones para concatenar
+                if (
+                    (curr not in self.operators and curr not in '([{|' and
+                     nxt not in self.operators and nxt not in ')]}|') or
+                    (curr not in self.operators and curr not in '([{|' and nxt in '([') or
+                    (curr in ')]}' and nxt not in self.operators and nxt not in ')]}|') or
+                    (curr in ')]}' and nxt in '([') or
+                    (curr in '*+?' and nxt not in self.operators and nxt not in ')]}|') or
+                    (curr in '*+?' and nxt in '([')
+                ):
                     result.append('.')
-        
         return ''.join(result)
-    
+
     def infix_to_postfix(self, infix):
         """
-        Convert infix expression to postfix using Shunting Yard algorithm
-        Returns: (postfix_expression, steps)
+        Convierte una expresión infija a postfija usando el algoritmo de Shunting Yard.
+        Devuelve la expresión postfija y los pasos realizados.
         """
-        # Preprocess the regex
         preprocessed = self.preprocess_regex(infix)
         processed_with_concat = self.add_explicit_concatenation(preprocessed)
-        
         output_queue = []
         operator_stack = []
         steps = []
-        
-        steps.append(f"Original expression: {infix}")
-        steps.append(f"After preprocessing: {preprocessed}")
-        steps.append(f"After adding concatenation: {processed_with_concat}")
-        steps.append("Starting Shunting Yard algorithm:")
-        steps.append("Initial state - Output: [], Stack: []")
-        
+        steps.append(f"Original: {infix}")
+        steps.append(f"Preprocesada: {preprocessed}")
+        steps.append(f"Con concatenación: {processed_with_concat}")
+        steps.append("Iniciando Shunting Yard:")
+
         for i, token in enumerate(processed_with_concat):
-            step_info = f"Step {i+1}: Processing '{token}'"
-            
-            # If token is operand (character)
+            step_info = f"Paso {i+1}: '{token}'"
             if token not in self.operators and token not in '()[]{}':
                 output_queue.append(token)
-                step_info += f" -> Add to output: {output_queue}, Stack: {operator_stack}"
-            
-            # If token is operator
+                step_info += f" -> Salida: {output_queue}, Pila: {operator_stack}"
             elif token in self.operators:
-                while (operator_stack and 
+                while (operator_stack and
                        operator_stack[-1] != '(' and
                        operator_stack[-1] in self.operators and
                        (self.precedence[operator_stack[-1]] > self.precedence[token] or
-                        (self.precedence[operator_stack[-1]] == self.precedence[token] and 
+                        (self.precedence[operator_stack[-1]] == self.precedence[token] and
                          token not in self.right_associative))):
-                    
                     output_queue.append(operator_stack.pop())
-                
                 operator_stack.append(token)
-                step_info += f" -> Pop higher precedence, push operator: Output: {output_queue}, Stack: {operator_stack}"
-            
-            # If token is left parenthesis
+                step_info += f" -> Pila: {operator_stack}, Salida: {output_queue}"
             elif token in '([{':
                 operator_stack.append(token)
-                step_info += f" -> Push opening bracket: Output: {output_queue}, Stack: {operator_stack}"
-            
-            # If token is right parenthesis
+                step_info += f" -> Pila: {operator_stack}, Salida: {output_queue}"
             elif token in ')]}':
-                # Map closing brackets to opening brackets
-                bracket_pairs = {')': '(', ']': '[', '}': '{'}
-                opening = bracket_pairs[token]
+                pairs = {')': '(', ']': '[', '}': '{'}
+                opening = pairs[token]
                 while operator_stack and operator_stack[-1] != opening:
                     output_queue.append(operator_stack.pop())
-                
-                if operator_stack:
-                    operator_stack.pop()  # Remove opening bracket
-                
-                step_info += f" -> Pop until opening bracket: Output: {output_queue}, Stack: {operator_stack}"
-            
+                if operator_stack and operator_stack[-1] == opening:
+                    operator_stack.pop()
+                step_info += f" -> Pila: {operator_stack}, Salida: {output_queue}"
             steps.append(step_info)
-        
-        # Pop remaining operators
+
         while operator_stack:
             output_queue.append(operator_stack.pop())
-        
-        steps.append(f"Final step: Pop remaining operators: Output: {output_queue}, Stack: {operator_stack}")
-        
+        steps.append(f"Final: Salida: {output_queue}, Pila vacía")
         postfix = ''.join(output_queue)
-        steps.append(f"Final postfix expression: {postfix}")
-        
+        steps.append(f"Postfija: {postfix}")
         return postfix, steps
-    
-    def process_file(self, filename):
-        """Process expressions from file"""
+
+    def process_expressions(self, expressions):
+        """
+        Procesa una lista de expresiones, mostrando pasos y resultados.
+        """
         results = []
         balancer = ExpressionBalancer()
-        try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
-            
-            print(f"Processing file: {filename}")
-            print("=" * 70)
-            
-            for line_num, line in enumerate(lines, 1):
-                expression = line.strip()
-                if not expression:
-                    continue
-                
-                print(f"\nExpression {line_num}: {expression}")
-                print("-" * 50)
-                
-                # Check if the expression is balanced
-                is_balanced, balance_steps = balancer.is_balanced(expression)
-                
-                # Print balancing steps for clarity
-                for step in balance_steps:
-                    print(f"  [Balance Check] {step}")
-
-                if not is_balanced:
-                    print("\n  Result: Expression is not balanced. Skipping conversion.")
-                    print("=" * 70)
-                    results.append(f"{expression} -> UNBALANCED, SKIPPED")
-                    continue
-
-                # If balanced, proceed with Shunting Yard
-                print("\n  Expression is balanced. Proceeding with Shunting Yard...")
-                postfix, steps = self.infix_to_postfix(expression)
-                
-                for step in steps:
-                    print(f"  {step}")
-                
-                print(f"\nFinal Result: {postfix}")
-                print("=" * 70)
-                results.append(f"{expression} -> {postfix}")
-        
-        except FileNotFoundError:
-            print(f"Error: File '{filename}' not found")
-        except Exception as e:
-            print(f"Error processing file: {e}")
-        
+        for idx, expression in enumerate(expressions, 1):
+            print(f"\nExpresión {idx}: {expression}")
+            print("-" * 50)
+            is_balanced, balance_steps = balancer.is_balanced(expression)
+            for step in balance_steps:
+                print(f"  [Balanceo] {step}")
+            if not is_balanced:
+                print("  Resultado: NO BALANCEADA. Se omite conversión.")
+                results.append(f"{expression} -> UNBALANCED, SKIPPED")
+                continue
+            print("  Balanceada. Aplicando Shunting Yard...")
+            postfix, steps = self.infix_to_postfix(expression)
+            for step in steps:
+                print(f"  {step}")
+            print(f"  Resultado final: {postfix}")
+            results.append(f"{expression} -> {postfix}")
         return results
 
-
-def create_regex_test_file():
-    """Create test file with regex expressions from Exercise 1"""
-    expressions = [
-        "(a|t)c",
-        "(a|b)*",
-        "(a*|b*)*",
-        "((ε|a)|b*)*",
-        "(a|b)*abb(a|b)*",
-        "0?(1?)?0*",
-        "if\\([ae]+\\)\\{[ei]+\\\}\\(\\n(else\\{[jl]+\\\}))?",
-        "[ae03]+@[ae03]+.(com|net|org)(.(gt|cr|co))?"
-    ]
-    
-    with open('regex_expressions.txt', 'w', encoding='utf-8') as file:
-        for expr in expressions:
-            file.write(expr + '\n')
-    
-    print("Test file 'regex_expressions.txt' created successfully!")
-
+    def process_file(self, filename):
+        """
+        Procesa expresiones desde un archivo.
+        """
+        try:
+            with open(filename, 'r', encoding='utf-8') as file:
+                lines = [line.strip() for line in file if line.strip()]
+            return self.process_expressions(lines)
+        except FileNotFoundError:
+            print(f"Archivo '{filename}' no encontrado.")
+            return []
+        except Exception as e:
+            print(f"Error procesando archivo: {e}")
+            return []
 
 def main():
-    print("=== SHUNTING YARD ALGORITHM ===")
-    print("\nBrief explanation:")
-    print("The Shunting Yard algorithm converts infix notation to postfix notation.")
-    print("It uses a stack to hold operators and outputs operands directly.")
-    print("Operators are popped based on precedence and associativity rules.")
-    print("Parentheses are handled by pushing opening ones and popping until")
-    print("the matching closing one is found.\n")
-    
-    # Create test file
-    create_regex_test_file()
-    
-    # Process expressions
+    print("=== ALGORITMO SHUNTING YARD ===")
+    print("Convierte expresiones regulares infijas a postfijas.\n")
     converter = ShuntingYard()
-    converter.process_file('regex_expressions.txt')
+    converter.process_file('expressions.txt')
 
 
 if __name__ == "__main__":

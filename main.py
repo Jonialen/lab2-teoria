@@ -3,8 +3,8 @@
 import sys
 
 # Import our custom classes
-from expression_balancer import ExpressionBalancer, create_test_file
-from shunting_yard import ShuntingYard, create_regex_test_file
+from expression_balancer import ExpressionBalancer
+from shunting_yard import ShuntingYard
 
 
 def print_header(title):
@@ -18,13 +18,7 @@ def run_exercise_2():
     """Execute Exercise 2 - Expression Balancer"""
     print_header("EXERCISE 2: EXPRESSION BALANCER")
     
-    # Ask for filename
-    filename = input("Enter the filename for the expression balancer (or press Enter for default): ").strip()
-    
-    if not filename:
-        # Create test file and run balancer
-        create_test_file()
-        filename = 'expressions.txt'
+    filename = 'expressions.txt'
 
     balancer = ExpressionBalancer()
     return balancer.process_file(filename)
@@ -34,13 +28,7 @@ def run_exercise_3():
     """Execute Exercise 3 - Shunting Yard Algorithm"""
     print_header("EXERCISE 3: SHUNTING YARD ALGORITHM")
     
-    # Ask for filename
-    filename = input("Enter the filename for the shunting yard (or press Enter for default): ").strip()
-
-    if not filename:
-        # Create test file and run converter
-        create_regex_test_file()
-        filename = 'regex_expressions.txt'
+    filename = 'expressions.txt'
 
     converter = ShuntingYard()
     return converter.process_file(filename)

@@ -76,27 +76,8 @@ class ExpressionBalancer:
         return results
 
 
-def create_test_file():
-    """Create test file with the required expressions"""
-    expressions = [
-        "a(a|b)*b+a?",
-        "A(a|b)bB*[az]b]",
-        "(a*b*c*d*(a|e|i|o|u))e*f*g*h){1,2}",
-        "^[aZ].com{5,30}",
-        "([[az][AZ]](((((.|;)|;)|.)|.)|.){10,20})*)+",
-    ]
-    
-    with open('expressions.txt', 'w', encoding='utf-8') as file:
-        for expr in expressions:
-            file.write(expr + '\n')
-    
-    print("Test file 'expressions.txt' created successfully!")
-
-
 def main():
-    # Create test file
-    create_test_file()
-    
+    """Main function to process expressions"""
     # Process expressions
     balancer = ExpressionBalancer()
     balancer.process_file('expressions.txt')

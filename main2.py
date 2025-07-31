@@ -94,23 +94,6 @@ class RegexASTProcessor:
                 'error': str(e),
                 'success': False
             }
-    
-    def create_test_file(self):
-        """Create test file with the required expressions"""
-        expressions = [
-            "(a*|b*)+",
-            "((ε|a)|b*)*", 
-            "(a|b)*abb(a|b)*",
-            "0?(1?)?0*"
-        ]
-        
-        filename = "lab3_expressions.txt"
-        with open(filename, 'w', encoding='utf-8') as file:
-            for expr in expressions:
-                file.write(expr + '\n')
-        
-        print(f"Test file '{filename}' created with required expressions")
-        return filename
 
 
 def main():
@@ -122,11 +105,11 @@ def main():
     
     processor = RegexASTProcessor()
     
-    # Create test file with required expressions
-    test_file = processor.create_test_file()
+    # Define the input file
+    input_file = "expressions.txt"
     
     # Process all expressions
-    results = processor.process_expressions_from_file(test_file)
+    results = processor.process_expressions_from_file(input_file)
     
     # Summary
     print("\n" + "=" * 80)
