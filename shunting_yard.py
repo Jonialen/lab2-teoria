@@ -218,7 +218,7 @@ class ShuntingYard:
                 print(f"  [Balanceo] {step}")
             if not is_balanced:
                 print("  Resultado: NO BALANCEADA. Se omite conversión.")
-                results.append(f"{expression} -> UNBALANCED, SKIPPED")
+                results.append(f"{expression} -> NO BALANCEADA, OMITIDA")
                 continue
             print("  Balanceada. Aplicando Shunting Yard...")
             postfix, steps = self.infix_to_postfix(expression)

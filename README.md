@@ -1,4 +1,6 @@
-# Lab 2 - Teoría de la Computación
+# Lab 2 - main.py
+# lab 3 -main2.py 
+(instalar requirements para la parte grafica del lab 3)
 
 Este proyecto tiene dos ejercicios:
 

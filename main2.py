@@ -7,7 +7,7 @@ from ast_visualizer import ASTVisualizer
 
 
 class RegexASTProcessor:
-    """Main class for processing regular expressions and creating ASTs"""
+    """Clase principal para procesar expresiones regulares y crear ASTs"""
     
     def __init__(self):
         self.shunting_yard = ShuntingYard()
@@ -15,19 +15,19 @@ class RegexASTProcessor:
         self.visualizer = ASTVisualizer()
     
     def process_expressions_from_file(self, filename):
-        """Process all expressions from file and create ASTs"""
+        """Procesa todas las expresiones de un archivo y crea los ASTs"""
         try:
             with open(filename, 'r', encoding='utf-8') as file:
                 expressions = [line.strip() for line in file.readlines() if line.strip()]
             
-            print(f"Processing {len(expressions)} expressions from {filename}")
+            print(f"Procesando {len(expressions)} expresiones de {filename}")
             print("=" * 80)
             
             results = []
             
             for i, expression in enumerate(expressions, 1):
-                print(f"\n{'='*20} EXPRESSION {i} {'='*20}")
-                print(f"Original Expression: {expression}")
+                print(f"\n{'='*20} EXPRESIÓN {i} {'='*20}")
+                print(f"Expresión Original: {expression}")
                 print("-" * 60)
                 
                 result = self.process_single_expression(expression, f"expr_{i}")
@@ -38,47 +38,47 @@ class RegexASTProcessor:
             return results
             
         except FileNotFoundError:
-            print(f"Error: File '{filename}' not found")
+            print(f"Error: Archivo '{filename}' no encontrado")
             return []
         except Exception as e:
-            print(f"Error processing file: {e}")
+            print(f"Error procesando archivo: {e}")
             return []
     
     def process_single_expression(self, expression, name):
-        """Process a single expression: infix -> postfix -> AST -> visualization"""
+        """Procesa una sola expresión: infijo -> postfijo -> AST -> visualización"""
         try:
-            # Step 1: Convert infix to postfix
-            print("STEP 1: Converting infix to postfix using Shunting Yard")
+            # Paso 1: Convertir de infijo a postfijo
+            print("PASO 1: Convirtiendo infijo a postfijo usando Shunting Yard")
             postfix, shunting_steps = self.shunting_yard.infix_to_postfix(expression)
             
-            print("Shunting Yard steps:")
+            print("Pasos de Shunting Yard:")
             for step in shunting_steps:
                 print(f"  {step}")
             
-            print(f"\nPostfix result: {postfix}")
+            print(f"\nResultado postfijo: {postfix}")
             
-            # Step 2: Build AST from postfix
-            print("\nSTEP 2: Building AST from postfix expression")
+            # Paso 2: Construir el AST a partir del postfijo
+            print("\nPASO 2: Construyendo AST desde la expresión postfija")
             ast_root, ast_steps = self.ast_builder.build_ast(postfix)
             
-            print("AST construction steps:")
+            print("Pasos de construcción de AST:")
             for step in ast_steps:
                 print(f"  {step}")
             
-            # Step 3: Print AST structure
-            print("\nSTEP 3: AST Structure")
+            # Paso 3: Imprimir la estructura del AST
+            print("\nPASO 3: Estructura del AST")
             self.ast_builder.print_ast(ast_root)
             
-            # Step 4: Visualize AST
-            print("\nSTEP 4: Creating visual representation")
+            # Paso 4: Visualizar el AST
+            print("\nPASO 4: Creando representación visual")
             dot = self.visualizer.visualize_ast(ast_root, f"{name}: {expression}")
             
-            # Save the visualization
+            # Guardar la visualización
             filename = f"ast_{name}"
             success = self.visualizer.save_and_view(dot, filename, view=False)
             
             if success:
-                print(f"AST visualization saved as {filename}.png")
+                print(f"Visualización del AST guardada como {filename}.png")
             
             return {
                 'expression': expression,
@@ -88,7 +88,7 @@ class RegexASTProcessor:
             }
             
         except Exception as e:
-            print(f"ERROR processing expression '{expression}': {e}")
+            print(f"ERROR procesando la expresión '{expression}': {e}")
             return {
                 'expression': expression,
                 'error': str(e),
@@ -97,7 +97,7 @@ class RegexASTProcessor:
 
 
 def main():
-    """Main function"""
+    """Función principal"""
     print("=" * 80)
     print("LABORATORIO 3 - EJERCICIO 1")
     print("Conversión de Expresiones Regulares a AST")
@@ -105,13 +105,13 @@ def main():
     
     processor = RegexASTProcessor()
     
-    # Define the input file
+    # Definir el archivo de entrada
     input_file = "expressions.txt"
     
-    # Process all expressions
+    # Procesar todas las expresiones
     results = processor.process_expressions_from_file(input_file)
     
-    # Summary
+    # Resumen
     print("\n" + "=" * 80)
     print("RESUMEN DE RESULTADOS")
     print("=" * 80)
@@ -121,9 +121,9 @@ def main():
     
     for i, result in enumerate(results, 1):
         if result['success']:
-            print(f"{i}. {result['expression']} -> {result['postfix']} ✓")
+            print(f"{i}. {result['expression']} -> {result['postfix']} Exito")
         else:
-            print(f"{i}. {result['expression']} -> ERROR: {result['error']} ✗")
+            print(f"{i}. {result['expression']} -> ERROR: {result['error']} Fallo")
     
     print(f"\nArchivos generados:")
     for i in range(1, len(results) + 1):
