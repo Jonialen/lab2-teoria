@@ -60,7 +60,6 @@ class RegexASTProcessor:
             # Paso 2: Construir el AST a partir del postfijo
             print("\nPASO 2: Construyendo AST desde la expresión postfija")
             ast_root, ast_steps = self.ast_builder.build_ast(postfix)
-            
             print("Pasos de construcción de AST:")
             for step in ast_steps:
                 print(f"  {step}")
