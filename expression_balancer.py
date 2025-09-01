@@ -1,46 +1,45 @@
 # expression_balancer.py (expression_balancer.py)
 
 class ExpressionBalancer:
-    """Valida si las expresiones tienen paréntesis, corchetes y llaves balanceados"""
+    """
+    Verifica el balance de paréntesis en expresiones regulares.
+    """
     
     def __init__(self):
-        self.opening_symbols = {'(', '[', '{'}
-        self.closing_symbols = {')', ']', '}'}
-        self.pairs = {'(': ')', '[': ']', '{': '}'}
+        self.steps = []
     
     def is_balanced(self, expression):
         """
-        Comprueba si la expresión tiene símbolos balanceados y devuelve el proceso paso a paso
-        Returns: (is_balanced: bool, steps: list)
+        Verifica si los paréntesis están balanceados en la expresión.
+        Retorna (is_balanced: bool, steps: list)
         """
+        self.steps = []
         stack = []
-        steps = []
-        
-        steps.append(f"Procesando expresión: {expression}")
-        steps.append("Pila inicial: []")
+        position = 0
         
         for i, char in enumerate(expression):
-            if char in self.opening_symbols:
-                stack.append(char)
-                steps.append(f"Posición {i}: Se encontró apertura '{char}' -> Empujar a la pila: {stack}")
-            
-            elif char in self.closing_symbols:
-                if not stack:
-                    steps.append(f"Posición {i}: Se encontró cierre '{char}' pero la pila está vacía -> NO BALANCEADO")
-                    return False, steps
+            # Saltar caracteres escapados
+            if i > 0 and expression[i-1] == '\\':
+                continue
                 
-                top = stack.pop()
-                if self.pairs[top] == char:
-                    steps.append(f"Posición {i}: Se encontró cierre '{char}' que coincide con apertura '{top}' -> Sacar de la pila: {stack}")
-                else:
-                    steps.append(f"Posición {i}: Se encontró cierre '{char}' no coincide con apertura '{top}' -> NO BALANCEADO")
-                    return False, steps
+            if char == '(':
+                stack.append(i)
+                self.steps.append(f"Posición {i}: '(' - nivel {len(stack)}")
+                
+            elif char == ')':
+                if not stack:
+                    self.steps.append(f"Posición {i}: ')' sin '(' correspondiente")
+                    return False, self.steps
+                
+                open_pos = stack.pop()
+                self.steps.append(f"Posición {i}: ')' - cierra '(' en posición {open_pos}")
         
-        is_balanced = len(stack) == 0
-        final_state = "BALANCEADO" if is_balanced else "NO BALANCEADO"
-        steps.append(f"Pila final: {stack} -> {final_state}")
+        if stack:
+            self.steps.append(f"'(' sin cerrar en posiciones: {stack}")
+            return False, self.steps
         
-        return is_balanced, steps
+        self.steps.append("Expresión balanceada correctamente")
+        return True, self.steps
     
     def process_file(self, filename):
         """Procesa un archivo con expresiones línea por línea"""
