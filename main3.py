@@ -114,7 +114,7 @@ class RegexProcessor:
             # Resumen de simulaciones
             print(f"\nResumen de simulaciones:")
             for test_str, accepted in simulation_results:
-                result = "✓" if accepted else "✗"
+                result = "Si" if accepted else "No"
                 print(f"  '{test_str}' -> {result}")
             
             return {
@@ -173,7 +173,7 @@ def main():
         if result['success'] and 'simulation_results' in result:
             print(f"\nExpresión {i}: {result['expression']}")
             for test_str, accepted in result['simulation_results']:
-                symbol = "✓" if accepted else "✗"
+                symbol = "Si" if accepted else "No"
                 print(f"  '{test_str}' -> {symbol}")
 
 

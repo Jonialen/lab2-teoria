@@ -1,10 +1,10 @@
---- Expression Balancer Results ---
-(a*|b*)+: BALANCED
-((ε|a)|b*)*: BALANCED
-(a|b)*abb(a|b)*: BALANCED
-0?(1?)?0*: BALANCED
+--- Resultados del Balanceador de Expresiones ---
+(a*|b*)+: BALANCEADO
+((ε|a)|b*)*: BALANCEADO
+(a|b)*abb(a|b)*: BALANCEADO
+0?(1?)?0*: BALANCEADO
 
---- Shunting Yard Results ---
+--- Resultados de Shunting Yard ---
 (a*|b*)+ -> a*b*|a*b*|*.
 ((ε|a)|b*)* -> εa|b*|*
 (a|b)*abb(a|b)* -> ab|*a.b.b.ab|*.

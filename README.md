@@ -1,76 +1,108 @@
 # Laboratorio de Teoría de la Computación: Expresiones Regulares
 
-Este proyecto contiene las implementaciones para dos laboratorios de Teoría de la Computación, enfocados en el procesamiento y visualización de expresiones regulares.
+Este proyecto implementa un pipeline completo para el procesamiento, simulación y visualización de expresiones regulares, incluyendo:
 
-- **Laboratorio 2**: Implementa un verificador de balanceo de paréntesis y un conversor de expresiones de notación infija a postfija (usando el algoritmo Shunting Yard).
-- **Laboratorio 3**: Construye y visualiza un Árbol de Sintaxis Abstracta (AST) a partir de una expresión regular en notación postfija.
-
-## Características
-
-### Laboratorio 2 (`main.py`)
-
-- **Verificador de Balanceo**: Comprueba si los paréntesis `()`, corchetes `[]` y llaves `{}` en una expresión están correctamente balanceados.
-- **Algoritmo Shunting Yard**: Convierte expresiones regulares de notación infija a notación postfija.
-  - Maneja los operadores de unión (`|`), concatenación (`.`), y clausura de Kleene (`*`).
-  - Inserta explícitamente el operador de concatenación donde es implícito.
-
-### Laboratorio 3 (`main2.py`)
-
-- **Constructor de AST**: Toma una expresión en notación postfija y construye su correspondiente Árbol de Sintaxis Abstracta (AST).
-- **Visualizador de AST**: Genera una representación gráfica del AST utilizando `graphviz` y la guarda como una imagen PNG.
-  - Distingue visualmente entre operandos, operadores unarios y operadores binarios.
-
-## Requisitos
-
-Para poder ejecutar ambos laboratorios, necesitas tener Python 3 instalado. Para la visualización gráfica del Laboratorio 3, se requiere una dependencia adicional.
-
-- Python 3.x
-- Graphviz
-
-Puedes instalar la librería de Python para Graphviz usando pip:
-
-```bash
-pip install -r requirements.txt
-```
-
-**Nota:** También debes tener instalado el software de Graphviz en tu sistema operativo. Puedes encontrar las instrucciones de instalación en el [sitio web oficial de Graphviz](https://graphviz.org/download/).
-
-## Uso
-
-Las expresiones a procesar deben ser colocadas en el archivo `expressions.txt`, una por línea.
-
-### Ejecutar Laboratorio 2
-
-Este script verificará el balanceo de las expresiones y las convertirá a notación postfija.
-
-```bash
-python main.py
-```
-
-Los resultados se mostrarán en la consola y se guardará un resumen en `output.txt`.
-
-### Ejecutar Laboratorio 3
-
-Este script convertirá las expresiones a postfija, construirá los ASTs y generará una imagen (`.png`) para cada uno.
-
-```bash
-python main2.py
-```
-
-Las imágenes de los árboles (`ast_expr_1.png`, `ast_expr_2.png`, etc.) se guardarán en el directorio principal del proyecto.
+- Conversión infijo → postfijo (Shunting Yard)
+- Construcción de Árbol de Sintaxis Abstracta (AST)
+- Construcción de AFN (Thompson)
+- Construcción de AFD (Subconjuntos)
+- Minimización de AFD
+- Simulación de cadenas en AFN y AFD
+- Visualización de AST, AFN y AFD con Graphviz
 
 ## Estructura del Proyecto
 
 ```
 .
-├── main.py                 # Punto de entrada para Lab 2
-├── main2.py                # Punto de entrada para Lab 3
-├── shunting_yard.py        # Implementación del algoritmo Shunting Yard
-├── expression_balancer.py  # Lógica para verificar el balanceo de paréntesis
-├── ast_builder.py          # Lógica para construir el AST
-├── ast_node.py             # Define la estructura de un nodo del AST
-├── ast_visualizer.py       # Lógica para visualizar el AST con Graphviz
-├── expressions.txt         # Archivo de entrada con las expresiones a procesar
-├── requirements.txt        # Dependencias del proyecto
+├── main.py                 # Balanceo y conversión infijo→postfijo (Lab 2)
+├── main2.py                # Construcción y visualización de AST (Lab 3)
+├── main3.py                # Pipeline hasta AFN y simulación (Lab 4)
+├── main_project.py         # Pipeline completo: AST, AFN, AFD, minimización, simulación, visualización
+├── shunting_yard.py        # Algoritmo Shunting Yard
+├── expression_balancer.py  # Verificador de balanceo de paréntesis
+├── ast_builder.py          # Construcción de AST desde postfijo
+├── ast_node.py             # Nodo del AST
+├── ast_visualizer.py       # Visualización de AST con Graphviz
+├── thompson.py             # Construcción de AFN (Thompson)
+├── nfa.py                  # Estructura y operaciones de AFN
+├── nfa_visualizer.py       # Visualización de AFN
+├── nfa_simulator.py        # Simulación de AFN
+├── subset_construction.py  # Construcción de AFD (subconjuntos)
+├── dfa.py                  # Estructura y operaciones de AFD
+├── dfa_visualizer.py       # Visualización de AFD
+├── dfa_simulator.py        # Simulación de AFD
+├── dfa_minimizer.py        # Minimización de AFD
+├── expressions.txt         # Expresiones regulares de entrada
+├── requirements.txt        # Dependencias Python
+├── output/                 # Archivos generados (visualizaciones, reportes)
 └── README.md               # Este archivo
 ```
+
+## Requisitos
+
+- Python 3.x
+- [Graphviz](https://graphviz.org/download/) (software y librería Python)
+
+Instala la dependencia de Python con:
+
+```sh
+pip install -r requirements.txt
+```
+
+**Nota:** Debes instalar también el software de Graphviz en tu sistema operativo para generar imágenes.
+
+## Uso
+
+Coloca tus expresiones regulares (una por línea) en `expressions.txt`.
+
+### Ejecución rápida del pipeline completo
+
+```sh
+python main_project.py
+```
+
+Esto generará:
+- Visualizaciones PNG de AST, AFN, AFD y AFD minimizado en `output/`
+- Un reporte resumen en `output/resumen_procesamiento.txt`
+- Simulación de cadenas de prueba en cada autómata
+
+### Ejecución por etapas
+
+- **Balanceo y conversión a postfijo:**  
+  ```sh
+  python main.py
+  ```
+  Resultados en consola y en `output.txt`.
+
+- **Construcción y visualización de AST:**  
+  ```sh
+  python main2.py
+  ```
+  Imágenes `ast_expr_X.png` en el directorio principal.
+
+- **Pipeline hasta AFN y simulación:**  
+  ```sh
+  python main3.py
+  ```
+  Imágenes `ast_expr_X.png`, `nfa_expr_X.png` y simulaciones en consola.
+
+## Visualizaciones
+
+Las imágenes generadas muestran:
+- **AST:** Estructura sintáctica de la expresión.
+- **AFN:** Autómata de Thompson.
+- **AFD:** Autómata determinista (construcción de subconjuntos).
+- **AFD Min:** Autómata determinista minimizado.
+
+## Reportes
+
+- `output/resumen_procesamiento.txt`: Estadísticas y resultados de cada expresión.
+- `minimization_report.txt`: Detalles del proceso de minimización de AFD.
+
+## Créditos
+
+Desarrollado para el curso de Teoría de la Computación, Universidad del Valle de Guatemala.
+
+---
+
+¿Dudas o sugerencias? ¡Contacta al autor o revisa los

@@ -1,4 +1,30 @@
-# .gitignore (.gitignore)
-.venv
-.env
-/__pycache__/
+# Archivos y carpetas de salida
+output/
+*.png
+*.pdf
+*.jpg
+
+# Archivos de reporte y logs
+*.log
+*.txt
+!expressions.txt
+!requirements.txt
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de entorno virtual
+env/
+venv/
+ENV/
+.venv/
+
+# Archivos de configuración de VSCode
+.vscode/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
