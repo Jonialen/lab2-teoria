@@ -4,32 +4,32 @@ from ast_node import ASTNode
 
 
 class ASTBuilder:
-    """Builds Abstract Syntax Tree from postfix regular expressions"""
+    """Construye un Árbol de Sintaxis Abstracta a partir de expresiones regulares postfijas"""
     
     def __init__(self):
-        self.binary_operators = {'|', '.'}  # Union and concatenation
-        self.unary_operators = {'*', '+', '?'}  # Kleene star, plus, optional
+        self.binary_operators = {'|', '.'}  # Unión y concatenación
+        self.unary_operators = {'*', '+', '?'}  # Estrella de Kleene, positivo, opcional
         self.node_counter = 0
     
     def build_ast(self, postfix_expression):
         """
-        Build AST from postfix expression using a stack
-        Returns: (root_node, steps)
+        Construye el AST a partir de una expresión postfija usando una pila
+        Retorna: (nodo_raiz, pasos)
         """
         stack = []
         steps = []
         self.node_counter = 0
         
-        steps.append(f"Building AST from postfix: {postfix_expression}")
-        steps.append("Initial stack: []")
+        steps.append(f"Construyendo AST desde postfijo: {postfix_expression}")
+        steps.append("Pila inicial: []")
         
         for i, token in enumerate(postfix_expression):
-            step_info = f"Step {i+1}: Processing '{token}'"
+            step_info = f"Paso {i+1}: Procesando '{token}'"
             
             if token in self.binary_operators:
-                # Binary operator needs two operands
+                # El operador binario necesita dos operandos
                 if len(stack) < 2:
-                    raise ValueError(f"Not enough operands for binary operator '{token}'")
+                    raise ValueError(f"No hay suficientes operandos para el operador binario '{token}'")
                 
                 right = stack.pop()
                 left = stack.pop()
@@ -37,48 +37,48 @@ class ASTBuilder:
                 node.id = self._get_next_id()
                 stack.append(node)
                 
-                step_info += f" -> Binary operator: pop {right.value} and {left.value}, create node, push result"
+                step_info += f" -> Operador binario: pop {right.value} y {left.value}, crear nodo, empujar resultado"
                 
             elif token in self.unary_operators:
-                # Unary operator needs one operand
+                # El operador unario necesita un operando
                 if len(stack) < 1:
-                    raise ValueError(f"Not enough operands for unary operator '{token}'")
+                    raise ValueError(f"No hay suficientes operandos para el operador unario '{token}'")
                 
                 operand = stack.pop()
                 node = ASTNode(token, operand, None, 'unary_op')
                 node.id = self._get_next_id()
                 stack.append(node)
                 
-                step_info += f" -> Unary operator: pop {operand.value}, create node, push result"
+                step_info += f" -> Operador unario: pop {operand.value}, crear nodo, empujar resultado"
                 
             else:
-                # Operand (character or epsilon)
+                # Operando (carácter o épsilon)
                 node = ASTNode(token, None, None, 'operand')
                 node.id = self._get_next_id()
                 stack.append(node)
                 
-                step_info += f" -> Operand: create leaf node, push to stack"
+                step_info += f" -> Operando: crear nodo hoja, empujar a la pila"
             
-            # Show current stack state
+            # Mostrar el estado actual de la pila
             stack_repr = [node.value for node in stack]
-            step_info += f" | Stack: {stack_repr}"
+            step_info += f" | Pila: {stack_repr}"
             steps.append(step_info)
         
         if len(stack) != 1:
-            raise ValueError("Invalid postfix expression: stack should contain exactly one element")
+            raise ValueError("Expresión postfija inválida: la pila debe contener exactamente un elemento")
         
         root = stack[0]
-        steps.append(f"AST construction complete. Root node: {root.value}")
+        steps.append(f"Construcción del AST completa. Nodo raíz: {root.value}")
         
         return root, steps
     
     def _get_next_id(self):
-        """Generate unique ID for nodes"""
+        """Genera un ID único para los nodos"""
         self.node_counter += 1
         return f"node_{self.node_counter}"
     
     def print_ast(self, node, level=0, prefix="Root: "):
-        """Print AST in a tree-like format"""
+        """Imprime el AST en un formato similar a un árbol"""
         if node is None:
             return
         

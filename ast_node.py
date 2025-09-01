@@ -1,17 +1,17 @@
 # ast_node.py (ast_node.py)
 
 class ASTNode:
-    """Represents a node in the Abstract Syntax Tree for regular expressions"""
+    """Representa un nodo en el Árbol de Sintaxis Abstracta para expresiones regulares"""
     
     def __init__(self, value, left=None, right=None, node_type='operand'):
         self.value = value
         self.left = left
         self.right = right
-        self.node_type = node_type  # 'operand', 'unary_op', 'binary_op'
-        self.id = None  # For Graphviz visualization
+        self.node_type = node_type  # 'operando', 'op_unario', 'op_binario'
+        self.id = None  # Para visualización con Graphviz
     
     def is_leaf(self):
-        """Check if this node is a leaf (operand)"""
+        """Comprueba si este nodo es una hoja (operando)"""
         return self.left is None and self.right is None
     
     def __str__(self):
