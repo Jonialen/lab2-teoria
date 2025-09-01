@@ -9,16 +9,16 @@ class NFASimulator:
     def simulate(self, input_string):
         """
         Simula el AFN con una cadena de entrada
-        Retorna (accepted, steps)
+        Retorna (aceptado, pasos)
         """
         steps = []
         steps.append(f"Simulando AFN con cadena: '{input_string}'")
         steps.append(f"Estado inicial: q{self.nfa.initial_state.state_id}")
         
-        # Comenzar con epsilon-clausura del estado inicial
+        # Comenzar con la clausura épsilon del estado inicial
         current_states = self.nfa.get_epsilon_closure([self.nfa.initial_state])
         state_names = [f'q{s.state_id}' for s in current_states]
-        steps.append(f"Estados tras epsilon-clausura inicial: {{{', '.join(state_names)}}}")
+        steps.append(f"Estados tras clausura épsilon inicial: {{{', '.join(state_names)}}}")
         
         # Procesar cada carácter
         for i, symbol in enumerate(input_string):
@@ -39,10 +39,10 @@ class NFASimulator:
                 steps.append("CADENA RECHAZADA: No hay más transiciones")
                 return False, steps
             
-            # Aplicar epsilon-clausura
+            # Aplicar clausura épsilon
             current_states = self.nfa.get_epsilon_closure(list(next_states))
             state_names = [f'q{s.state_id}' for s in current_states]
-            steps.append(f"  Estados tras transiciones y epsilon-clausura: {{{', '.join(state_names)}}}")
+            steps.append(f"  Estados tras transiciones y clausura épsilon: {{{', '.join(state_names)}}}")
         
         # Verificar si algún estado actual es final
         final_states_reached = [s for s in current_states if s.is_final]
