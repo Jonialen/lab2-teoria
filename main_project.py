@@ -294,7 +294,7 @@ def main():
     
     # Configuración por defecto
     input_file = "expressions.txt"
-    test_strings = ["", "a", "b", "aa", "ab", "ba", "bb", "aaa", "aba", "bab"]
+    test_strings = ["", "a", "b", "aa", "ab", "ba", "bb", "aaa", "aba", "bab", "[a-z]0"]
     
     # Procesar argumentos de línea de comandos
     if len(sys.argv) > 1:
