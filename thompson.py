@@ -12,7 +12,7 @@ class ThompsonConstructor:
     def construct_nfa(self, ast_root):
         """Construye un AFN a partir del AST usando el algoritmo de Thompson"""
         if ast_root is None:
-            # NFA vacío
+            # AFN vacío
             nfa = NFA()
             initial = nfa.create_state()
             final = nfa.create_state(is_final=True)
@@ -59,8 +59,8 @@ class ThompsonConstructor:
         return nfa
     
     def _concatenate_nfas(self, nfa1, nfa2):
-        """Concatena dos AFNs usando epsilon transiciones"""
-        # Crear nuevo AFN que combine ambos
+        """Concatena dos AFNs usando transiciones épsilon"""
+        # Crear un nuevo AFN que combine ambos
         result_nfa = NFA()
         
         # Copiar estados de nfa1
@@ -98,14 +98,14 @@ class ThompsonConstructor:
         # Establecer estado inicial
         result_nfa.set_initial_state(state_mapping1[nfa1.initial_state.state_id])
         
-        # Conectar estados finales de nfa1 con inicial de nfa2
+        # Conectar estados finales de nfa1 con el inicial de nfa2
         for final_state_id in nfa1.final_states:
             # Remover la marca de final del estado de nfa1
             state_mapping1[final_state_id].is_final = False
             if final_state_id in result_nfa.final_states:
                 result_nfa.final_states.remove(final_state_id)
             
-            # Añadir epsilon transición
+            # Añadir transición épsilon
             result_nfa.add_transition(
                 state_mapping1[final_state_id],
                 'ε',
@@ -152,7 +152,7 @@ class ThompsonConstructor:
                         state_mapping2[target.state_id]
                     )
         
-        # Conectar nuevo inicial con iniciales de ambos AFNs
+        # Conectar el nuevo inicial con los iniciales de ambos AFNs
         result_nfa.add_transition(
             new_initial, 'ε', state_mapping1[nfa1.initial_state.state_id]
         )
