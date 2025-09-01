@@ -1,6 +1,6 @@
 # subset_construction.py (subset_construction.py)
 
-from dfa import DFA, DFAState
+from dfa import DFA
 
 class SubsetConstruction:
     """Implementa el algoritmo de construcción de subconjuntos (AFN → AFD)"""
