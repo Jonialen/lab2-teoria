@@ -1,5 +1,3 @@
-# shunting_yard.py (shunting_yard.py)
-
 from expression_balancer import ExpressionBalancer
 
 class ShuntingYard:
@@ -19,8 +17,75 @@ class ShuntingYard:
         # Inicializar el balanceador
         self.balancer = ExpressionBalancer()
 
+    def expand_range(self, start_char, end_char):
+        """
+        Expande un rango de caracteres como 'a-z' o '0-9'
+        Returns: lista de caracteres o None si el rango no es válido
+        """
+        # Verificar que ambos sean caracteres individuales
+        if len(start_char) != 1 or len(end_char) != 1:
+            return None
+        
+        start_ord = ord(start_char)
+        end_ord = ord(end_char)
+        
+        # El rango debe ser válido (start <= end)
+        if start_ord > end_ord:
+            return None
+        
+        # Verificar que sean del mismo tipo para rangos comunes
+        if (start_char.isalpha() and end_char.isalpha()) or \
+           (start_char.isdigit() and end_char.isdigit()) or \
+           (start_char.isalnum() and end_char.isalnum()):
+            # Generar todos los caracteres en el rango
+            return [chr(i) for i in range(start_ord, end_ord + 1)]
+        
+        # Para otros casos, también permitir el rango si es secuencial
+        return [chr(i) for i in range(start_ord, end_ord + 1)]
+
+    def parse_character_class(self, chars_inside):
+        """
+        Parsea el contenido de una clase de caracteres [...]
+        Maneja rangos como a-z, caracteres literales y combinaciones
+        """
+        if not chars_inside:
+            return []
+        
+        characters = set()  # Usar set para evitar duplicados
+        i = 0
+        
+        while i < len(chars_inside):
+            # Caso especial: guión al principio o al final es literal
+            if chars_inside[i] == '-' and (i == 0 or i == len(chars_inside) - 1):
+                characters.add('-')
+                i += 1
+                continue
+            
+            # Verificar si hay un rango: x-y
+            if i + 2 < len(chars_inside) and chars_inside[i + 1] == '-':
+                start_char = chars_inside[i]
+                end_char = chars_inside[i + 2]
+                
+                # Intentar expandir el rango
+                range_chars = self.expand_range(start_char, end_char)
+                
+                if range_chars:
+                    # Rango válido, agregar todos los caracteres
+                    characters.update(range_chars)
+                    i += 3  # Saltar start_char, -, end_char
+                else:
+                    # Rango inválido, tratar como caracteres literales
+                    characters.add(start_char)
+                    i += 1
+            else:
+                # Carácter literal
+                characters.add(chars_inside[i])
+                i += 1
+        
+        return sorted(list(characters))  # Retornar lista ordenada
+
     def tokenize(self, regex):
-        """Tokeniza manejando caracteres escapados y clases de caracteres [...]"""
+        """Tokeniza manejando caracteres escapados"""
         tokens = []
         i = 0
         
@@ -29,61 +94,79 @@ class ShuntingYard:
                 # Carácter escapado: '\x' como un token literal
                 tokens.append(regex[i:i+2])
                 i += 2
-            elif regex[i] == '[':
-                # Inicio de una clase de caracteres
-                j = i + 1
-                # Buscar el ']' correspondiente
-                while j < len(regex) and regex[j] != ']':
-                    j += 1
-                
-                if j < len(regex):
-                    # Clase de caracteres encontrada
-                    tokens.append(regex[i:j+1])
-                    i = j + 1
-                else:
-                    # Si no se encuentra ']', tratar '[' como literal
-                    tokens.append(regex[i])
-                    i += 1
             else:
                 tokens.append(regex[i])
                 i += 1
         
         return tokens
 
-    def expand_character_classes(self, tokens):
-        """Expande clases de caracteres [abc] a (a|b|c)"""
-        expanded_tokens = []
-        for token in tokens:
-            if token.startswith('[') and token.endswith(']'):
-                # Es una clase de caracteres
-                chars = token[1:-1]
-                if not chars:
-                    # Clase vacía, podría ser un error o un caso especial
-                    # Por ahora, lo omitimos o manejamos como un literal vacío si es necesario
-                    continue
-
-                # Construir la expresión de alternancia
-                expanded_tokens.append('(')
-                for i, char in enumerate(chars):
-                    # Manejar posibles caracteres escapados dentro de la clase si es necesario
-                    # Por simplicidad, aquí tratamos cada carácter como literal
-                    expanded_tokens.append(char)
-                    if i < len(chars) - 1:
-                        expanded_tokens.append('|')
-                expanded_tokens.append(')')
-            else:
-                expanded_tokens.append(token)
-        return expanded_tokens
-
     def is_literal(self, token):
         """Verifica si un token es un literal (operando)"""
+        # Carácter escapado (siempre literal)
         if len(token) == 2 and token[0] == '\\':
-            return True  # Carácter escapado
-        if len(token) == 1 and token.isalnum():
-            return True  # Letra o número
+            return True
+        
+        # Epsilon
         if token == 'ε':
-            return True  # Epsilon
+            return True
+        
+        # Un solo carácter que no sea operador
+        if len(token) == 1 and token not in {'|', '.', '*', '(', ')', '[', ']'}:
+            return True
+        
         return False
+
+    def expand_character_classes(self, tokens):
+        """
+        Expande clases de caracteres [abc] a alternancia (a|b|c)
+        Trabaja con tokens ya tokenizados para manejar escapes correctamente
+        """
+        result = []
+        i = 0
+        
+        while i < len(tokens):
+            if tokens[i] == '[':
+                # Buscar el cierre del corchete
+                j = i + 1
+                bracket_level = 1
+                
+                while j < len(tokens) and bracket_level > 0:
+                    if tokens[j] == '[':
+                        bracket_level += 1
+                    elif tokens[j] == ']':
+                        bracket_level -= 1
+                    j += 1
+                
+                if bracket_level == 0:  # Encontró el cierre balanceado
+                    # Extraer tokens dentro de los corchetes
+                    chars_inside = tokens[i+1:j-1]
+                    
+                    # Convertir tokens a string para parsear rangos
+                    chars_str = ''.join(chars_inside)
+                    expanded_chars = self.parse_character_class(chars_str)
+                    
+                    if expanded_chars:
+                        # Crear alternancia: (a|b|c)
+                        result.append('(')
+                        for k, char in enumerate(expanded_chars):
+                            if k > 0:
+                                result.append('|')
+                            result.append(char)
+                        result.append(')')
+                    else:
+                        # Clase vacía, mantener tokens originales
+                        result.extend(tokens[i:j])
+                    
+                    i = j
+                else:
+                    # No balanceado, mantener como literal
+                    result.append(tokens[i])
+                    i += 1
+            else:
+                result.append(tokens[i])
+                i += 1
+        
+        return result
 
     def extract_operand_from_end(self, tokens):
         """
@@ -214,15 +297,19 @@ class ShuntingYard:
         tokens = self.tokenize(infix)
         steps.append(f"Tokens: {tokens}")
         
-        # Paso 2: Expandir + y ? a forma atómica
-        atomic_tokens = self.expand_plus_and_question(tokens)
+        # Paso 2: Expandir clases de caracteres
+        expanded_tokens = self.expand_character_classes(tokens)
+        steps.append(f"Clases expandidas: {expanded_tokens}")
+        
+        # Paso 3: Expandir + y ? a forma atómica
+        atomic_tokens = self.expand_plus_and_question(expanded_tokens)
         steps.append(f"Forma atómica: {atomic_tokens}")
         
-        # Paso 3: Agregar concatenación explícita
+        # Paso 4: Agregar concatenación explícita
         tokens_with_concat = self.add_concatenation(atomic_tokens)
         steps.append(f"Con concatenación: {tokens_with_concat}")
         
-        # Paso 4: Aplicar Shunting Yard
+        # Paso 5: Aplicar Shunting Yard
         output = []
         stack = []
         steps.append("Iniciando Shunting Yard:")
@@ -231,9 +318,14 @@ class ShuntingYard:
             step_info = f"  Paso {i+1}: '{token}'"
             
             if self.is_literal(token):
-                # Operandos van directamente a la salida
-                output.append(token)
-                step_info += f" -> Operando a salida: {output}"
+                # PROCESAR ESCAPES: Si es un carácter escapado, solo agregar el carácter
+                if len(token) == 2 and token[0] == '\\':
+                    literal_char = token[1]  # Solo el carácter sin el backslash
+                    output.append(literal_char)
+                    step_info += f" -> Escape '{token}' -> Literal '{literal_char}' a salida: {output}"
+                else:
+                    output.append(token)
+                    step_info += f" -> Operando a salida: {output}"
                 
             elif token == '*':
                 # * es operador unario postfijo, va directo a salida
@@ -330,24 +422,30 @@ class ShuntingYard:
 
 def main():
     """Función principal para pruebas independientes"""
-    print("=== ALGORITMO SHUNTING YARD PARA THOMPSON ===")
+    print("=== ALGORITMO SHUNTING YARD CON SOPORTE PARA RANGOS ===")
     print("Convierte expresiones regulares a forma atómica postfija.\n")
     
     converter = ShuntingYard()
     
-    # Casos de prueba
+    # Casos de prueba incluyendo rangos
     test_expressions = [
-        "a+",           # Caso simple +
-        "a?",           # Caso simple ?
-        "\\++",         # Carácter literal + con operador +
-        "(a|b)+",       # Expresión compleja con +
-        "(a|b)?",       # Expresión compleja con ?
-        "a+b*c?",       # Múltiples operadores
-        "((a|b)*c)+",   # Anidamiento complejo
-        "a(b+",         # No balanceada (debe fallar)
+        "[ae03]",       # Clase simple
+        "[a-z]",        # Rango de letras minúsculas
+        "[A-Z]",        # Rango de letras mayúsculas
+        "[0-9]",        # Rango de dígitos
+        "[a-zA-Z]",     # Múltiples rangos
+        "[a-z0-9]",     # Rango + rango
+        "[abc0-9]",     # Literales + rango
+        "[a-c-f]",      # Rango + guión literal + literal
+        "[-abc]",       # Guión literal al principio
+        "[abc-]",       # Guión literal al final
+        "[a-z]*",       # Rango con *
+        "[0-9]+",       # Rango con +
+        "a[b-d]e",      # Concatenación con rango
+        "\[a-z\][0-9]",   # Dos rangos concatenados
     ]
     
-    print("CASOS DE PRUEBA:")
+    print("CASOS DE PRUEBA CON RANGOS:")
     results = converter.process_expressions(test_expressions)
     
     print(f"\n{'='*60}")
