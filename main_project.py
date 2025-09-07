@@ -132,8 +132,8 @@ class RegexProcessor:
             print(f"AFD Minimizado: {result['minimized_dfa_states']} estados")
             
             # PASO 6: Crear visualizaciones
-            print(f"\nPASO 6: Generando visualizaciones")
-            self._create_visualizations(ast_root, nfa, dfa, minimized_dfa, expression, expr_num)
+            # print(f"\nPASO 6: Generando visualizaciones")
+            # self._create_visualizations(ast_root, nfa, dfa, minimized_dfa, expression, expr_num)
             
             # PASO 7: Simular autómatas
             print(f"\nPASO 7: Simulando con cadenas de prueba")

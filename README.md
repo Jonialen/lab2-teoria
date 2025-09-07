@@ -62,25 +62,30 @@ python main_project.py
 ```
 
 Esto generará:
+
 - Visualizaciones PNG de AST, AFN, AFD y AFD minimizado en `output/`
 - Un reporte resumen en `output/resumen_procesamiento.txt`
 - Simulación de cadenas de prueba en cada autómata
 
 ### Ejecución por etapas
 
-- **Balanceo y conversión a postfijo:**  
+- **Balanceo y conversión a postfijo:**
+
   ```sh
   python main.py
   ```
+
   Resultados en consola y en `output.txt`.
 
-- **Construcción y visualización de AST:**  
+- **Construcción y visualización de AST:**
+
   ```sh
   python main2.py
   ```
+
   Imágenes `ast_expr_X.png` en el directorio principal.
 
-- **Pipeline hasta AFN y simulación:**  
+- **Pipeline hasta AFN y simulación:**
   ```sh
   python main3.py
   ```
@@ -89,6 +94,7 @@ Esto generará:
 ## Visualizaciones
 
 Las imágenes generadas muestran:
+
 - **AST:** Estructura sintáctica de la expresión.
 - **AFN:** Autómata de Thompson.
 - **AFD:** Autómata determinista (construcción de subconjuntos).
@@ -104,5 +110,3 @@ Las imágenes generadas muestran:
 Desarrollado para el curso de Teoría de la Computación, Universidad del Valle de Guatemala.
 
 ---
-
-¿Dudas o sugerencias? ¡Contacta al autor o revisa los
