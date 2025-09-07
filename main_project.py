@@ -37,7 +37,7 @@ class RegexProcessor:
         self.output_dir = "output"
         os.makedirs(self.output_dir, exist_ok=True)
         
-    def process_file(self, filename: str, test_strings: List[str] = None) -> List[Dict[str, Any]]:
+    def process_file(self, filename: str, testpath: str = "") -> List[Dict[str, Any]]:
         """
         Procesa un archivo con expresiones regulares línea por línea
         """
@@ -61,10 +61,24 @@ class RegexProcessor:
         
         results = []
         
-        # Cadenas de prueba por defecto si no se proporcionan
-        if test_strings is None:
-            test_strings = ["", "a", "b", "aa", "ab", "ba", "bb", "aaa", "aba", "bab"]
+        try:
+            with open(testpath, 'r', encoding='utf-8') as file:
+                test_strings = [line.strip() for line in file if line.strip()]
+        except FileNotFoundError:
+            print(f"Error: Archivo '{filename}' no encontrado")
+            return []
+        except Exception as e:
+            print(f"Error leyendo archivo: {e}")
+            return []
         
+        if not expressions:
+            print("No se encontraron expresiones válidas en el archivo")
+            return []
+        
+        print(f"Procesando archivo: {filename}")
+        print(f"Test encontrados: {len(expressions)}")
+        print("=" * 80)
+       
         # Procesar cada expresión
         for i, expression in enumerate(expressions, 1):
             print(f"\n{'='*20} EXPRESIÓN {i} {'='*20}")
@@ -294,12 +308,12 @@ def main():
     
     # Configuración por defecto
     input_file = "expressions.txt"
-    test_strings = ["", "a", "b", "aa", "ab", "ba", "bb", "aaa", "aba", "bab", "[a-z]0"]
+    test_strings = "test.txt"
     
     # Procesar argumentos de línea de comandos
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
-    
+   
     # Verificar que el archivo existe
     if not os.path.exists(input_file):
         print(f"No Error: Archivo '{input_file}' no encontrado")
