@@ -9,6 +9,7 @@ class ASTVisualizer:
     
     def __init__(self):
         self.node_styles = {
+            'escaped_operand': {'shape': 'circle', 'style': 'filled', 'fillcolor': 'lightblue'},
             'operand': {'shape': 'circle', 'style': 'filled', 'fillcolor': 'lightblue'},
             'binary_op': {'shape': 'diamond', 'style': 'filled', 'fillcolor': 'lightgreen'},
             'unary_op': {'shape': 'square', 'style': 'filled', 'fillcolor': 'lightyellow'}
@@ -71,11 +72,10 @@ class ASTVisualizer:
             '|': '∪',  # Símbolo de unión
             '.': '•',  # Símbolo de concatenación
             '*': '*',  # Estrella de Kleene
-            '+': '+',  # Uno o más
-            '?': '?',  # Opcional
             'ε': 'ε'  # Épsilon
         }
-        return special_chars.get(value, value)
+        display_value = special_chars.get(value, value or "")
+        return graphviz.escape(display_value)
     
     def save_and_view(self, dot, filename, view=True):
         """Guarda el grafo y opcionalmente lo visualiza"""

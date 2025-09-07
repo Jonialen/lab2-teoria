@@ -41,7 +41,7 @@ class DFAVisualizer:
         for state_id, state in dfa.states.items():
             style = self._get_state_style(state, dfa)
             label = self._create_state_label(state, show_nfa_states)
-            dot.node(f'q{state_id}', label, **style)
+            dot.node(f'q{state_id}', graphviz.escape(label), **style)
         
         # Añadir estado fantasma para mostrar el inicial
         if dfa.initial_state:
@@ -51,7 +51,7 @@ class DFAVisualizer:
         # Añadir transiciones
         for state_id, state in dfa.states.items():
             for symbol, target_state in state.transitions.items():
-                dot.edge(f'q{state_id}', f'q{target_state.state_id}', label=symbol)
+                dot.edge(f'q{state_id}', f'q{target_state.state_id}', label=graphviz.escape(symbol))
         
         return dot
     

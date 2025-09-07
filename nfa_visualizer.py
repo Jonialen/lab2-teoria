@@ -1,7 +1,7 @@
 # nfa_visualizer.py (nfa_visualizer.py)
 
 import graphviz
-
+from graphviz import escape
 
 class NFAVisualizer:
     """Visualiza AFNs usando Graphviz"""
@@ -40,7 +40,7 @@ class NFAVisualizer:
         # Añadir estados
         for state_id, state in nfa.states.items():
             style = self._get_state_style(state, nfa)
-            dot.node(f'q{state_id}', f'q{state_id}', **style)
+            dot.node(f'q{state_id}', escape(f'q{state_id}'), **style)
         
         # Añadir estado fantasma para mostrar el inicial
         if nfa.initial_state:
@@ -54,7 +54,7 @@ class NFAVisualizer:
                 for target in targets:
                     edge_key = (state_id, target.state_id, symbol)
                     if edge_key not in added_edges:
-                        label = 'ε' if symbol == 'ε' else symbol
+                        label = 'ε' if symbol == 'ε' else escape(symbol)
                         dot.edge(f'q{state_id}', f'q{target.state_id}', label=label)
                         added_edges.add(edge_key)
         

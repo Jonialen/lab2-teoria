@@ -24,7 +24,8 @@ class ThompsonConstructor:
     
     def _build_nfa_recursive(self, node):
         """Construye recursivamente el AFN para un nodo del AST"""
-        if node.node_type == 'operand':
+
+        if node.node_type == 'operand' or node.node_type == 'escaped_operand':
             return self._create_basic_nfa(node.value)
         elif node.value == '.':  # Concatenación
             return self._concatenate_nfas(

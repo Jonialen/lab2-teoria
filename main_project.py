@@ -106,7 +106,7 @@ class RegexProcessor:
                 return result
             
             result['postfix'] = postfix
-            print(f"Postfix: {postfix}")
+            print(f"Postfix: {postfix}", type(postfix))
             
             # PASO 2: Construcción de AST
             print(f"\nPASO 2: Construcción de AST")

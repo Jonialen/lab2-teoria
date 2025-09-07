@@ -94,16 +94,20 @@ class ShuntingYard:
                 # Carácter escapado: '\x' como un token literal
                 tokens.append(regex[i:i+2])
                 i += 2
+            elif regex[i] == ".":
+                tokens.append('\\'+regex[i])
+                i += 1
             else:
                 tokens.append(regex[i])
                 i += 1
         
+        print("hola soy los tokens", tokens)
         return tokens
 
     def is_literal(self, token):
         """Verifica si un token es un literal (operando)"""
         # Carácter escapado (siempre literal)
-        if len(token) == 2 and token[0] == '\\':
+        if len(token) >= 2 and token[0] == '\\':
             return True
         
         # Epsilon
@@ -320,9 +324,9 @@ class ShuntingYard:
             if self.is_literal(token):
                 # PROCESAR ESCAPES: Si es un carácter escapado, solo agregar el carácter
                 if len(token) == 2 and token[0] == '\\':
-                    literal_char = token[1]  # Solo el carácter sin el backslash
-                    output.append(literal_char)
-                    step_info += f" -> Escape '{token}' -> Literal '{literal_char}' a salida: {output}"
+                    # literal_char = token[1]  # Solo el carácter sin el backslash
+                    output.append(token)
+                    step_info += f" -> Escape '{token}' -> preservado en la salida: {output}"
                 else:
                     output.append(token)
                     step_info += f" -> Operando a salida: {output}"
@@ -360,11 +364,12 @@ class ShuntingYard:
         while stack:
             output.append(stack.pop())
         
-        postfix = ''.join(output)
-        steps.append(f"Postfija final: {postfix}")
-        
-        return postfix, steps
-
+        postfix_tokens = output
+        postfix_string = ''.join(output)
+        steps.append(f"Postfija final (tokens): {postfix_tokens}")
+        steps.append(f"Postfija final (string): {postfix_string}")
+    
+        return postfix_tokens, steps
     def process_expressions(self, expressions):
         """
         Procesa una lista de expresiones, mostrando pasos y resultados.
@@ -377,11 +382,12 @@ class ShuntingYard:
             print('='*60)
             
             postfix, steps = self.infix_to_postfix(expression)
-            
+                        
             for step in steps:
                 print(f"  {step}")
             
             if postfix:
+                postfix = ''.join(postfix)
                 print(f"RESULTADO FINAL: {postfix}")
                 results.append(f"{expression} -> {postfix}")
             else:
